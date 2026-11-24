@@ -161,6 +161,9 @@ function validatePersonalInfo() {
   if (formState.personalInfo.phone.trim() === "") {
     errors.phone = "This field is required";
   }
+  else if(formState.personalInfo.phone.length < 10 || formState.personalInfo.phone.length > 15){
+    errors.phone = "Enter a valid phone number";
+  }
 
   formState.errors = errors;
   showPersonalInfoErrors();
@@ -187,7 +190,13 @@ function validateSingleField(fieldName) {
 
   if (value === "") {
     formState.errors[fieldName] = "This field is required";
-  } else if (fieldName === "email") {
+  }
+  else if(value === "name"){
+    if(formState.personalInfo[fieldName].trim() === ""){
+      formState.errors.name = "This field is required";
+    }
+  }
+  else if (fieldName === "email") {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailPattern.test(value)) {
@@ -195,7 +204,23 @@ function validateSingleField(fieldName) {
     } else {
       delete formState.errors.email;
     }
-  } else {
+  }
+  else if(fieldName === "phone"){
+    let digits = "";
+    for(let char of value){
+      if(char >= '0' && char <= '9'){
+        digits += char;
+      }
+    }
+    if(digits.length < 10 || digits.length > 15){
+      formState.errors.phone = "Enter a valid phone number";
+    }
+    else{
+      delete formState.errors.phone;
+      digits = "";
+    }
+  }
+  else {
     delete formState.errors[fieldName];
   }
 
