@@ -331,7 +331,6 @@ button {
 }
 
 .plan-free {
-  display: block;
   margin-top: 7px;
   color: var(--marine-blue);
   font-size: 12px;
