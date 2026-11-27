@@ -141,34 +141,53 @@ function goToStep(stepNumber) {
 
 // 6. PERSONAL INFO VALIDATION
 
-function validatePersonalInfo() {
-  const errors = {};
+function validateField(fieldName) {
+  const value = formState.personalInfo[fieldName].trim();
 
-  if (formState.personalInfo.name.trim() === "") {
-    errors.name = "This field is required";
+  if (value === "") {
+    return "This field is required";
   }
 
-  if (formState.personalInfo.email.trim() === "") {
-    errors.email = "This field is required";
-  } else {
+  if (fieldName === "email") {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!emailPattern.test(formState.personalInfo.email.trim())) {
-      errors.email = "Enter a valid email address";
+    if (!emailPattern.test(value)) {
+      return "Enter a valid email address";
     }
   }
 
-  if (formState.personalInfo.phone.trim() === "") {
-    errors.phone = "This field is required";
-  }
-  else if(formState.personalInfo.phone.length < 10 || formState.personalInfo.phone.length > 15){
-    errors.phone = "Enter a valid phone number";
+  if (fieldName === "phone") {
+    // Allow only digits and common phone number symbols
+    const phonePattern = /^\+?[\d\s()-]+$/;
+
+    if (!phonePattern.test(value)) {
+      return "Enter a valid phone number";
+    }
+
+    // Count only the actual digits
+    const digits = value.replace(/\D/g, "");
+
+    if (digits.length < 10 || digits.length > 15) {
+      return "Phone number must have atleast 10 digits";
+    }
   }
 
-  formState.errors = errors;
+  return "";
+}
+
+// Validate all three fields when clicking Next
+function validatePersonalInfo() {
+  const fields = ["name", "email", "phone"];
+
+  fields.forEach(function (fieldName) {
+    formState.errors[fieldName] = validateField(fieldName);
+  });
+
   showPersonalInfoErrors();
 
-  return Object.keys(errors).length === 0;
+  return Object.values(formState.errors).every(function (error) {
+    return error === "";
+  });
 }
 
 function showPersonalInfoErrors() {
@@ -181,62 +200,35 @@ function showPersonalInfoErrors() {
 
     errorText.textContent = errorMessage;
     input.classList.toggle("invalid", errorMessage !== "");
-    input.setAttribute("aria-invalid", errorMessage ? "true" : "false");
+
+    input.setAttribute(
+      "aria-invalid",
+      errorMessage !== "" ? "true" : "false"
+    );
   });
 }
 
-function validateSingleField(fieldName) {
-  const value = formState.personalInfo[fieldName].trim();
 
-  if (value === "") {
-    formState.errors[fieldName] = "This field is required";
-  } 
-  else if (fieldName === "email") {
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Save input and validate the field if an error exists
+function handlePersonalInfoInput(fieldName, input) {
+  formState.personalInfo[fieldName] = input.value;
 
-    if (!emailPattern.test(value)) {
-      formState.errors.email = "Enter a valid email address";
-    } else {
-      delete formState.errors.email;
-    }
-  } 
-  else if (fieldName === "phone") {
-    if (value.length < 10 || value.length > 15) {
-      formState.errors.phone = "Enter a valid phone number";
-    } else {
-      delete formState.errors.phone;
-    }
-  } 
-  else {
-    delete formState.errors[fieldName];
+  if (formState.errors[fieldName]) {
+    formState.errors[fieldName] = validateField(fieldName);
+    showPersonalInfoErrors();
   }
-
-  showPersonalInfoErrors();
 }
 
-// Save what the user types into the state object.
 nameInput.addEventListener("input", function () {
-  formState.personalInfo.name = nameInput.value;
-
-  if (Object.keys(formState.errors).length > 0) {
-    validateSingleField("name");
-  }
+  handlePersonalInfoInput("name", nameInput);
 });
 
 emailInput.addEventListener("input", function () {
-  formState.personalInfo.email = emailInput.value;
-
-  if (Object.keys(formState.errors).length > 0) {
-    validateSingleField("email");
-  }
+  handlePersonalInfoInput("email", emailInput);
 });
 
 phoneInput.addEventListener("input", function () {
-  formState.personalInfo.phone = phoneInput.value;
-
-  if (Object.keys(formState.errors).length > 0) {
-    validateSingleField("phone");
-  }
+  handlePersonalInfoInput("phone", phoneInput);
 });
 
 
